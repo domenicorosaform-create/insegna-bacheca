@@ -3,213 +3,1497 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Insegne In Corso</title>
+<title>Gestione Insegne</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232d8c5a'/%3E%3Cline x1='22' y1='20' x2='17' y2='11' stroke='white' stroke-width='4' stroke-linecap='round'/%3E%3Cline x1='32' y1='17' x2='32' y2='7' stroke='white' stroke-width='4' stroke-linecap='round'/%3E%3Cline x1='42' y1='20' x2='47' y2='11' stroke='white' stroke-width='4' stroke-linecap='round'/%3E%3Crect x='13' y='27' width='38' height='24' rx='3' fill='white'/%3E%3Crect x='18' y='33' width='28' height='4' rx='2' fill='%232d8c5a'/%3E%3Crect x='18' y='41' width='18' height='4' rx='2' fill='%232d8c5a'/%3E%3C/svg%3E">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 :root {
   --bg:#e8e6e0; --surface:#f0ede8; --surface2:#e2dfd9; --surface3:#d8d4ce;
   --border:#c8c4be; --border2:#b0aca6;
-  --accent:#2d8c5a; --accent-dim:rgba(45,140,90,0.10);
+  --accent:#2d8c5a; --accent-dim:rgba(45,140,90,0.10); --accent-light:#3aa870;
   --text:#2a2825; --muted:#8a8680; --muted2:#6a6662;
-  --red:#c0392b; --orange:#c67c2a; --blue:#2a6cb0;
+  --red:#c0392b; --orange:#c67c2a; --blue:#2a6cb0; --purple:#7c4da8;
   --mono:'DM Mono',monospace; --sans:'DM Sans',sans-serif;
-  --r:8px; --shadow:0 1px 4px rgba(0,0,0,0.10);
+  --fs:13px; --r:6px;
+  --shadow:0 1px 4px rgba(0,0,0,0.10); --shadow-md:0 4px 16px rgba(0,0,0,0.12);
 }
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14px;min-height:100vh;padding-bottom:30px;}
-.header{display:flex;align-items:center;justify-content:space-between;padding:0 16px;height:52px;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;box-shadow:var(--shadow);}
-.logo{font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:.15em;font-weight:500;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:var(--fs);min-height:100vh;}
+.header{display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:54px;border-bottom:1px solid var(--border);background:var(--surface);position:fixed;top:0;left:0;right:0;z-index:200;box-shadow:var(--shadow);}
+.logo{font-family:var(--mono);font-size:12px;color:var(--accent);letter-spacing:.15em;font-weight:500;}
 .logo span{color:var(--muted);}
-.header-right{display:flex;align-items:center;gap:8px;}
-.badge-pub{font-family:var(--mono);font-size:9px;background:rgba(45,140,90,.1);color:var(--accent);border:1px solid rgba(45,140,90,.2);padding:3px 8px;border-radius:3px;}
-.btn-sync{font-family:var(--mono);font-size:10px;padding:6px 12px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--muted2);display:flex;align-items:center;gap:5px;cursor:pointer;}
-.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);flex-shrink:0;}
+.header-right{display:flex;align-items:center;gap:12px;}
+.hstats{display:flex;gap:16px;}
+.hstat{text-align:center;}
+.hstat-val{font-family:var(--mono);font-size:16px;color:var(--accent);font-weight:500;}
+.hstat-lbl{font-size:8.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.09em;}
+.btn-new{font-family:var(--mono);font-size:11px;padding:7px 14px;background:var(--accent);color:#fff;border:none;border-radius:var(--r);cursor:pointer;font-weight:500;}
+.btn-login{font-family:var(--mono);font-size:10px;padding:6px 12px;background:transparent;border:1px solid var(--border2);border-radius:var(--r);cursor:pointer;color:var(--muted2);}
+.btn-login.admin{border-color:var(--accent);color:var(--accent);}
+.btn-sync{font-family:var(--mono);font-size:10px;padding:6px 10px;background:transparent;border:1px solid var(--border);border-radius:var(--r);cursor:pointer;color:var(--muted2);display:flex;align-items:center;gap:5px;}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);}
 .sync-dot.syncing{background:var(--orange);animation:pulse 1s infinite;}
 .sync-dot.error{background:var(--red);}
-.stats-bar{display:flex;padding:12px 16px;background:var(--surface);border-bottom:1px solid var(--border);}
-.stat{flex:1;text-align:center;}
-.stat-val{font-family:var(--mono);font-size:20px;color:var(--accent);font-weight:500;}
-.stat-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-top:1px;}
-.stat+.stat{border-left:1px solid var(--border);}
-.filters-wrap{padding:12px 16px;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:52px;z-index:99;}
-.filters{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;-webkit-overflow-scrolling:touch;}
-.filters::-webkit-scrollbar{display:none;}
-.fbtn{font-family:var(--mono);font-size:10px;padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);white-space:nowrap;cursor:pointer;flex-shrink:0;}
-.fbtn.active{border-color:var(--accent);color:var(--accent);background:var(--accent-dim);}
-.year-wrap{padding:10px 16px 0;display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
-.year-wrap::-webkit-scrollbar{display:none;}
-.ybtn{font-family:var(--mono);font-size:10px;padding:4px 12px;border-radius:4px;border:1px solid var(--border);background:var(--surface);color:var(--muted);white-space:nowrap;cursor:pointer;flex-shrink:0;}
-.ybtn.active{border-color:var(--accent);color:var(--accent);background:var(--accent-dim);}
-.cards{padding:12px 16px;display:flex;flex-direction:column;gap:10px;}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px;box-shadow:var(--shadow);}
-.card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;}
-.card-name{font-weight:700;font-size:15px;line-height:1.2;}
-.card-fiera{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:3px;}
-.badge{font-family:var(--mono);font-size:9px;padding:3px 8px;border-radius:3px;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;font-weight:500;flex-shrink:0;margin-left:8px;}
-.b-green{background:rgba(45,140,90,.12);color:var(--accent);border:1px solid rgba(45,140,90,.25);}
-.b-orange{background:rgba(198,124,42,.12);color:var(--orange);border:1px solid rgba(198,124,42,.25);}
-.b-gray{background:rgba(100,100,100,.10);color:#666;border:1px solid rgba(100,100,100,.20);}
-.b-blue{background:rgba(42,108,176,.12);color:var(--blue);border:1px solid rgba(42,108,176,.25);}
-.card-info{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:8px;}
-.info-item{display:flex;flex-direction:column;gap:1px;}
-.info-lbl{font-family:var(--mono);font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;}
-.info-val{font-size:12px;color:var(--muted2);}
-.empty{text-align:center;padding:40px 20px;font-family:var(--mono);font-size:11px;color:var(--muted);}
-.loading{text-align:center;padding:40px 20px;font-family:var(--mono);font-size:11px;color:var(--muted);animation:pulse 1s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+.viewer-badge{font-family:var(--mono);font-size:10px;background:rgba(42,108,176,.1);color:var(--blue);border:1px solid rgba(42,108,176,.2);padding:4px 10px;border-radius:3px;}
+.nav{display:flex;gap:2px;padding:0 24px;background:var(--surface);border-bottom:1px solid var(--border);position:fixed;top:54px;left:0;right:0;z-index:199;overflow-x:auto;}
+.ntab{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.1em;padding:10px 16px;border:none;background:transparent;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;}
+.ntab:hover{color:var(--text);}
+.ntab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.ntab .cnt{margin-left:6px;font-family:var(--mono);font-size:9.5px;color:var(--muted);background:var(--surface2);border-radius:8px;padding:1px 6px;}
+.main{position:fixed;top:94px;left:0;right:0;bottom:0;overflow:hidden;}
+.view-panel{position:absolute;inset:0;overflow-y:auto;padding:20px 24px;}
+.view{display:none;}
+.view.active{display:block;}
+.year-bar,.filters{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;}
+.fbtn,.ybtn{font-family:var(--mono);font-size:10px;padding:4px 12px;border-radius:20px;border:1px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer;}
+.fbtn.active,.ybtn.active{border-color:var(--accent);color:var(--accent);background:var(--accent-dim);}
+.search-wrap{position:relative;max-width:300px;margin-bottom:14px;}
+.search-input{width:100%;padding:7px 10px 7px 30px;border:1px solid var(--border);border-radius:var(--r);background:var(--surface);font-family:var(--sans);font-size:12px;color:var(--text);outline:none;}
+.search-input:focus{border-color:var(--accent);}
+.split{display:flex;gap:0;}
+.list-pane{flex:1;min-width:0;}
+.detail-pane{width:340px;flex-shrink:0;border-left:1px solid var(--border);background:var(--surface);padding:18px;position:sticky;top:0;max-height:calc(100vh - 130px);overflow-y:auto;}
+.detail-empty{color:var(--muted);font-family:var(--mono);font-size:11px;text-align:center;padding:60px 20px;}
+.split.detail-focus .list-pane{display:none;}
+.split.detail-focus .detail-pane{width:100%;max-width:1100px;margin:0 auto;border-left:none;position:static;max-height:none;}
+.detail-back{display:none;align-items:center;gap:6px;font-family:var(--mono);font-size:12px;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:#fff;background:var(--accent);border:none;border-radius:20px;padding:10px 20px;cursor:pointer;margin-bottom:16px;box-shadow:var(--shadow-md);position:sticky;top:8px;z-index:50;}
+.detail-back:hover{background:var(--accent-light);}
+.split.detail-focus .detail-back{display:inline-flex;}
+table{width:100%;border-collapse:collapse;}
+th{font-family:var(--mono);font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);text-align:left;padding:7px 8px;border-bottom:2px solid var(--border);white-space:nowrap;}
+th.sortable{cursor:pointer;user-select:none;}
+th.sortable:hover{color:var(--text);}
+.sort-arrow{margin-left:4px;font-size:8px;color:var(--accent);}
+tr.prow{cursor:pointer;border-bottom:1px solid var(--border);}
+tr.prow:hover{background:var(--surface2);}
+tr.prow.sel{background:var(--accent-dim);border-left:3px solid var(--accent);}
+td{padding:8px;font-size:12.5px;vertical-align:middle;}
+.cname{font-weight:600;}
+.ftag{font-family:var(--mono);font-size:9.5px;color:var(--muted);margin-top:1px;}
+.badge{font-family:var(--mono);font-size:9px;padding:3px 8px;border-radius:3px;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;font-weight:500;display:inline-block;}
+.b-green{background:rgba(45,140,90,.12);color:var(--accent);}
+.b-orange{background:rgba(198,124,42,.12);color:var(--orange);}
+.b-gray{background:rgba(100,100,100,.10);color:#666;}
+.b-blue{background:rgba(42,108,176,.12);color:var(--blue);}
+.deadline{font-family:var(--mono);font-size:10px;display:flex;align-items:center;gap:4px;}
+.deadline.late{color:var(--red);}
+.deadline.soon{color:var(--orange);}
+.deadline.ok{color:var(--muted2);}
+.pw{display:flex;align-items:center;gap:6px;}
+.pbar{flex:1;height:4px;background:var(--surface3);border-radius:2px;overflow:hidden;min-width:40px;}
+.pfill{height:100%;border-radius:2px;background:var(--accent);}
+.ppct{font-family:var(--mono);font-size:9.5px;color:var(--muted);min-width:24px;}
+.kanban{display:flex;gap:12px;align-items:flex-start;}
+.kol{flex:1;min-width:150px;background:var(--surface);border-radius:var(--r);overflow:hidden;}
+.kol-head{padding:9px 11px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--kcolor,var(--border));}
+.kol-title{font-family:var(--mono);font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;font-weight:500;color:var(--kcolor,var(--muted2));}
+.kol-count{font-family:var(--mono);font-size:9.5px;background:var(--bg);border-radius:10px;padding:1px 6px;color:var(--muted);}
+.kol-body{padding:8px;display:flex;flex-direction:column;gap:8px;}
+.kcard{background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:9px 11px;cursor:pointer;}
+.kcard:hover{border-color:var(--accent);}
+.kcard-name{font-weight:600;font-size:12px;margin-bottom:2px;}
+.kcard-sub{font-family:var(--mono);font-size:9.5px;color:var(--muted);}
+.acc-group{background:var(--surface);border-radius:8px;overflow:hidden;margin-bottom:12px;}
+.acc-head{padding:9px 14px;background:var(--surface2);font-family:var(--mono);font-size:11px;font-weight:600;color:var(--accent);display:flex;justify-content:space-between;}
+.acc-row{display:flex;gap:10px;padding:8px 14px;border-bottom:1px solid var(--border);font-size:12px;align-items:center;cursor:pointer;}
+.acc-row:hover{background:var(--surface2);}
+.sec{margin-bottom:16px;}
+.sec-title{font-family:var(--mono);font-size:9.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.sec-title::after{content:'';flex:1;height:1px;background:var(--border);}
+.dm-title{font-size:16px;font-weight:600;margin-bottom:4px;}
+.dm-meta{font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:10px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+.dm-year{display:flex;align-items:center;gap:6px;margin-bottom:14px;background:var(--bg);border-radius:6px;padding:6px 10px;}
+.dm-year select{font-family:var(--mono);font-size:10.5px;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:3px 6px;color:var(--text);}
+.progress-mini{display:flex;align-items:center;gap:8px;background:var(--bg);border-radius:6px;padding:8px 10px;margin-bottom:14px;}
+.pm-num{font-family:var(--mono);font-weight:500;color:var(--accent);font-size:15px;}
+.attach-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;border-radius:6px;padding:2px;}
+.attach-grid.drag-over{background:var(--accent-dim);outline:2px dashed var(--accent);}
+.attach-tile{background:var(--bg);border:1px solid var(--border2);border-radius:8px;height:260px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;overflow:hidden;position:relative;text-decoration:none;color:var(--text);}
+.attach-tile img{width:100%;height:100%;object-fit:contain;}
+.attach-tile:hover{border-color:var(--accent);}
+.attach-icon{font-size:56px;}
+.attach-name{font-family:var(--mono);font-size:10px;color:var(--muted);position:absolute;bottom:2px;left:2px;right:2px;text-align:center;background:rgba(240,237,232,.9);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:3px 5px;}
+.attach-del{position:absolute;top:5px;right:5px;background:rgba(255,255,255,.9);border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;color:var(--red);}
+.attach-drop-hint{border:1px dashed var(--border2);font-family:var(--mono);font-size:10.5px;color:var(--muted);text-align:center;line-height:1.4;background:transparent;}
+.specs-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+.spec{background:var(--bg);border-radius:5px;padding:6px 8px;}
+.spec-l{font-family:var(--mono);font-size:8.5px;color:var(--muted);text-transform:uppercase;margin-bottom:1px;}
+.spec-v{font-size:11.5px;font-weight:500;}
+.link-row{display:flex;align-items:center;gap:7px;background:var(--bg);border-radius:6px;padding:8px 10px;font-family:var(--mono);font-size:10px;color:var(--blue);cursor:pointer;margin-bottom:6px;word-break:break-all;text-decoration:none;}
+.timeline{display:flex;flex-direction:column;gap:8px;}
+.tli{display:flex;gap:8px;font-size:11.5px;position:relative;}
+.tl-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0;margin-top:4px;}
+.tl-d{font-family:var(--mono);font-size:9.5px;color:var(--muted);}
+.tl-edit{font-family:var(--mono);font-size:8.5px;color:var(--muted);cursor:pointer;margin-left:6px;}
+.tl-add{display:flex;gap:6px;margin-top:8px;}
+.tl-add input{flex:1;padding:6px 8px;border:1px solid var(--border);border-radius:4px;background:var(--bg);font-size:11.5px;outline:none;}
+.tl-edit-input{width:100%;padding:6px 8px;border:1px solid var(--accent);border-radius:4px;background:var(--bg);font-family:var(--sans);font-size:11.5px;color:var(--text);outline:none;resize:vertical;}
+.checklist{list-style:none;display:flex;flex-direction:column;gap:1px;}
+.ci{display:flex;align-items:flex-start;gap:7px;font-size:11.5px;padding:4px 6px;border-radius:4px;}
+.ci input{accent-color:var(--accent);width:12px;height:12px;margin-top:2px;}
+.ci.done span{color:var(--muted);text-decoration:line-through;}
+.d-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:14px;}
+.d-btn{font-family:var(--mono);font-size:10px;padding:7px 12px;border-radius:4px;border:1px solid var(--border);background:var(--bg);color:var(--muted2);cursor:pointer;}
+.d-btn.primary{background:var(--accent);color:#fff;border-color:var(--accent);}
+.d-btn.mail{color:var(--accent);border-color:rgba(45,140,90,.4);}
+.d-btn.stock{color:var(--purple);border-color:rgba(124,77,168,.35);}
+.d-btn.danger:hover{border-color:var(--red);color:var(--red);}
+.proc-item{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:8px 10px;margin-bottom:6px;font-size:12px;}
+.proc-num{font-family:var(--mono);color:var(--muted);font-size:10px;min-width:18px;}
+.proc-text{flex:1;background:transparent;border:none;font-family:var(--sans);font-size:12px;color:var(--text);outline:none;}
+.icon-btn{background:transparent;border:1px solid var(--border);border-radius:4px;width:24px;height:24px;color:var(--muted);cursor:pointer;}
+.icon-btn:hover{border-color:var(--accent);color:var(--accent);}
+.icon-btn.danger:hover{border-color:var(--red);color:var(--red);}
+.proc-note{font-family:var(--mono);font-size:10px;color:var(--muted);background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:8px 10px;margin-bottom:14px;}
+.mail-split{display:flex;gap:16px;}
+.mail-col{flex:1;min-width:0;}
+.placeholder-legend{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0 12px;}
+.ph-tag{font-family:var(--mono);font-size:9.5px;background:var(--accent-dim);color:var(--accent);border-radius:3px;padding:2px 7px;}
+.finput{background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:8px 10px;font-family:var(--sans);font-size:12px;color:var(--text);outline:none;width:100%;}
+.upcase{text-transform:uppercase;}
+textarea.finput{min-height:70px;resize:vertical;line-height:1.6;}
+.mail-preview{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:12px;font-size:11.5px;line-height:1.8;color:var(--muted2);white-space:pre-line;min-height:200px;}
+.mag-note{font-family:var(--mono);font-size:10px;color:var(--muted);background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:8px 10px;margin-bottom:14px;}
+.keep-toolbar{margin-bottom:14px;}
+.keep-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;align-items:start;}
+.keep-card{background:#f2ecc9;border:1px solid #ddd3a0;border-radius:8px;padding:12px;display:flex;flex-direction:column;min-height:170px;box-shadow:var(--shadow);}
+.keep-text{flex:1;border:none;background:transparent;resize:vertical;font-family:var(--sans);font-size:12.5px;color:var(--text);outline:none;line-height:1.55;min-height:110px;}
+.keep-foot{display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:6px;border-top:1px solid rgba(0,0,0,.08);font-family:var(--mono);font-size:9px;color:#8a8355;}
+.keep-del{display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;font-size:14px;color:var(--red);cursor:pointer;background:rgba(192,57,43,.08);}
+.keep-del:hover{background:rgba(192,57,43,.18);}
+.keep-empty{color:var(--muted);font-family:var(--mono);font-size:11px;grid-column:1/-1;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:640px;}
+.fgroup{display:flex;flex-direction:column;gap:5px;}
+.fgroup.full{grid-column:1/-1;}
+.flabel{font-family:var(--mono);font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(20,18,16,.55);z-index:600;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:10px;width:92vw;max-width:640px;max-height:85vh;overflow-y:auto;padding:22px 24px;box-shadow:var(--shadow-md);}
+.modal-title{font-family:var(--mono);font-size:12px;color:var(--accent);text-transform:uppercase;letter-spacing:.1em;font-weight:500;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;}
+.modal-close{background:transparent;border:none;font-size:18px;color:var(--muted);cursor:pointer;}
+.form-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:18px;}
+.form-warn{font-family:var(--mono);font-size:10.5px;color:var(--red);min-height:14px;grid-column:1/-1;}
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--text);color:#fff;font-family:var(--mono);font-size:11px;padding:9px 20px;border-radius:6px;opacity:0;transition:all .3s;z-index:9999;white-space:nowrap;pointer-events:none;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 .toast.error{background:var(--red);}
-@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+input[type=file]{display:none;}
+.load-error{display:none;background:rgba(192,57,43,.1);border:1px solid rgba(192,57,43,.35);color:var(--red);border-radius:6px;padding:10px 14px;font-family:var(--mono);font-size:11px;line-height:1.6;margin-bottom:14px;}
+.load-error.show{display:block;}
+.pw-gate{position:fixed;inset:0;z-index:99999;background:var(--bg);display:flex;align-items:center;justify-content:center;}
+.pw-gate.hidden{display:none;}
+.pw-box{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:32px 28px;width:90vw;max-width:320px;box-shadow:var(--shadow-md);text-align:center;}
+.pw-box .pw-logo{margin-bottom:18px;font-family:var(--mono);font-size:13px;color:var(--accent);letter-spacing:.15em;}
+.pw-box .pw-logo span{color:var(--muted);}
+.pw-box input{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:6px;background:var(--bg);font-family:var(--sans);font-size:13px;color:var(--text);outline:none;margin-bottom:10px;box-sizing:border-box;}
+.pw-box input:focus{border-color:var(--accent);}
+.pw-box button{width:100%;padding:10px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-family:var(--mono);font-size:11px;cursor:pointer;text-transform:uppercase;letter-spacing:.08em;}
+.pw-err{color:var(--red);font-family:var(--mono);font-size:10.5px;min-height:14px;margin-top:8px;}
+
+/* ============================================================
+   RESPONSIVE MOBILE
+   ============================================================ */
+@media (max-width: 680px){
+  .header{padding:0 10px;height:50px;}
+  .logo{font-size:9.5px;}
+  .header-right{gap:5px;}
+  .hstats{display:none;}
+  .viewer-badge{font-size:8px;padding:3px 6px;}
+  .btn-sync{padding:5px 6px;}
+  .btn-sync span:last-child{display:none;}
+  .btn-login{font-size:8.5px;padding:5px 8px;}
+  .nav{top:50px;padding:0 10px;}
+  .ntab{padding:8px 9px;font-size:9.5px;}
+  .main{top:88px;}
+  .view-panel{padding:14px 10px;}
+
+  .split{flex-direction:column;}
+  .list-pane{overflow-x:auto;}
+  .detail-pane{width:100%;flex-shrink:1;border-left:none;border-top:1px solid var(--border);position:static;max-height:none;margin-top:16px;padding:14px;}
+  .split.detail-focus .detail-pane{max-width:100%;padding:14px;}
+  table{min-width:560px;}
+  .list-pane table th:nth-child(5), .list-pane table td:nth-child(5),
+  .list-pane table th:nth-child(6), .list-pane table td:nth-child(6){display:none;}
+  .list-pane table{min-width:0;}
+
+  .kanban{overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch;}
+  .kol{min-width:160px;}
+
+  .form-grid{grid-template-columns:1fr;max-width:100%;}
+  .specs-grid{grid-template-columns:1fr;}
+  .attach-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;}
+  .attach-tile{height:150px;}
+  .mail-split{flex-direction:column;gap:12px;}
+
+  .modal{width:94vw;padding:16px;max-height:88vh;}
+  .modal-title{font-size:11px;}
+
+  .btn-new{bottom:14px;right:14px;padding:10px 16px;font-size:10px;}
+  .toast{white-space:normal;max-width:88vw;text-align:center;left:6vw;transform:translateY(20px);right:6vw;}
+  .toast.show{transform:translateY(0);}
+  .d-actions{gap:8px;}
+  .d-btn{padding:8px 12px;}
+}
 </style>
 </head>
 <body>
+
+<div class="pw-gate" id="pw-gate">
+  <div class="pw-box">
+    <div class="pw-logo">GESTIONE <span>INSEGNE</span></div>
+    <input type="password" id="pw-input" placeholder="Password" autocomplete="off">
+    <button onclick="checkSitePassword()">Entra</button>
+    <div class="pw-err" id="pw-err"></div>
+  </div>
+</div>
+
 <div class="header">
-  <div class="logo">INSEGNE <span>IN CORSO</span></div>
+  <div class="logo">GESTIONE <span>INSEGNE</span></div>
   <div class="header-right">
-    <div class="badge-pub">BACHECA</div>
-    <button class="btn-sync" onclick="loadData()">
-      <div class="sync-dot" id="sync-dot"></div>
-      <span id="sync-lbl">Sync</span>
-    </button>
+    <div class="hstats" id="hstats"></div>
+    <span class="viewer-badge" id="viewer-badge">VISUALIZZATORE</span>
+    <button class="btn-sync" id="sync-btn" onclick="loadAll()"><span class="sync-dot" id="sync-dot"></span><span id="sync-lbl">Sincronizza</span></button>
+    <button class="btn-login" id="login-btn">Accedi con Google</button>
   </div>
 </div>
-<div class="stats-bar">
-  <div class="stat"><div class="stat-val" id="s-tot">—</div><div class="stat-lbl">Totale</div></div>
-  <div class="stat"><div class="stat-val" id="s-prod">—</div><div class="stat-lbl">Produzione</div></div>
-  <div class="stat"><div class="stat-val" id="s-prev">—</div><div class="stat-lbl">Preventivo</div></div>
-</div>
-<div class="filters-wrap">
-  <div class="filters">
-    <button class="fbtn active" onclick="setFilter('tutti',this)">Tutti</button>
-    <button class="fbtn" onclick="setFilter('nonconfermato',this)">Non confermato</button>
-    <button class="fbtn" onclick="setFilter('preventivo',this)">Preventivo</button>
-    <button class="fbtn" onclick="setFilter('produzione',this)">Produzione</button>
-    <button class="fbtn" onclick="setFilter('consegnato',this)">Consegnato</button>
+
+<div class="nav" id="nav"></div>
+
+<div class="main">
+  <div class="view-panel">
+    <div class="load-error" id="load-error"></div>
+
+    <div class="view active" id="view-lista">
+      <div class="search-wrap"><input class="search-input upcase" id="search" placeholder="Cerca cliente, fiera, fornitore..." oninput="renderTable()"></div>
+      <div class="year-bar" id="year-bar"></div>
+      <div class="filters" id="filters"></div>
+      <div class="split">
+        <div class="list-pane">
+          <table><thead><tr>
+            <th>Cliente / Fiera</th>
+            <th class="sortable" onclick="setSort('account')">Account<span class="sort-arrow" id="arrow-account"></span></th>
+            <th class="sortable" onclick="setSort('stato')">Stato<span class="sort-arrow" id="arrow-stato"></span></th>
+            <th class="sortable" onclick="setSort('consegna')">Consegna<span class="sort-arrow" id="arrow-consegna"></span></th>
+            <th class="sortable" onclick="setSort('fornitore')">Fornitore<span class="sort-arrow" id="arrow-fornitore"></span></th>
+            <th class="sortable" onclick="setSort('prezzo')">Prezzo<span class="sort-arrow" id="arrow-prezzo"></span></th>
+            <th class="sortable" onclick="setSort('avanzamento')">Avanz.<span class="sort-arrow" id="arrow-avanzamento"></span></th>
+          </tr></thead><tbody id="table-body"></tbody></table>
+        </div>
+        <div class="detail-pane" id="detail-pane"><div class="detail-empty">Seleziona un progetto dalla lista<br>per vederne i dettagli</div></div>
+      </div>
+    </div>
+
+    <div class="view" id="view-kanban"><div class="kanban" id="kanban"></div></div>
+
+    <div class="view" id="view-account"><div id="account-grid"></div></div>
+
+    <div class="view" id="view-magazzino">
+      <div class="mag-note">Insegne rimaste in stoccaggio da noi invece di essere consegnate. Restano qui finché non le rimetti in lista.</div>
+      <div class="search-wrap"><input class="search-input upcase" id="mag-search" placeholder="Cerca in magazzino..." oninput="renderMagazzino()"></div>
+      <table><thead><tr><th>Cliente / Fiera</th><th>Anno</th><th>Fornitore</th><th>Misure</th><th></th></tr></thead><tbody id="mag-table-body"></tbody></table>
+    </div>
+
+    <div class="view" id="view-note">
+      <div class="keep-toolbar admin-only"><button class="d-btn primary" onclick="addStickyNote()">+ Nuova nota</button></div>
+      <div class="keep-grid" id="keep-grid"></div>
+    </div>
+
+    <div class="view" id="view-procedura">
+      <div style="max-width:560px">
+        <div class="sec-title">Procedura standard</div>
+        <div class="proc-note">I progetti già aperti mantengono la checklist così com'era al momento della creazione — le modifiche qui valgono solo per i nuovi progetti.</div>
+        <div id="proc-list"></div>
+        <div style="display:flex;gap:8px">
+          <button class="d-btn admin-only" onclick="addProcStep()">+ Aggiungi step</button>
+          <button class="d-btn primary admin-only" onclick="saveProcedura()">Salva procedura</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="view" id="view-mailtpl">
+      <div class="sec-title">Template mail preventivo</div>
+      <div class="placeholder-legend">
+        <span class="ph-tag">{{cliente}}</span><span class="ph-tag">{{fiera}}</span><span class="ph-tag">{{dimensioni}}</span>
+        <span class="ph-tag">{{tipo}}</span><span class="ph-tag">{{costruzione}}</span><span class="ph-tag">{{illuminazione}}</span>
+        <span class="ph-tag">{{fissaggio}}</span><span class="ph-tag">{{colori}}</span><span class="ph-tag">{{note}}</span><span class="ph-tag">{{consegna}}</span>
+      </div>
+      <div class="mail-split">
+        <div class="mail-col">
+          <textarea class="finput upcase" id="mail-template" style="min-height:280px;font-family:var(--mono);font-size:11.5px" oninput="previewMailTpl()"></textarea>
+          <div style="margin-top:8px"><button class="d-btn primary admin-only" onclick="saveMailTemplate()">Salva template</button></div>
+        </div>
+        <div class="mail-col">
+          <div class="sec-title" style="margin-bottom:6px">Anteprima (dati di esempio)</div>
+          <div class="mail-preview" id="mail-tpl-preview"></div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
-<div class="year-wrap" id="year-bar"></div>
-<div class="cards" id="cards"><div class="loading">Caricamento...</div></div>
+
+<div class="modal-overlay" id="project-modal">
+  <div class="modal">
+    <div class="modal-title"><span id="modal-title">Nuovo progetto</span><button class="modal-close" onclick="closeModal('project-modal')">✕</button></div>
+    <div class="form-grid">
+      <div class="fgroup"><label class="flabel">Cliente *</label><input class="finput upcase" id="f-cliente"></div>
+      <div class="fgroup"><label class="flabel">Anno</label>
+        <select class="finput" id="f-anno"><option>2025</option><option selected>2026</option><option>2027</option></select>
+      </div>
+      <div class="fgroup"><label class="flabel">Fiera</label><input class="finput upcase" id="f-fiera"></div>
+      <div class="fgroup"><label class="flabel">Account</label><input class="finput upcase" id="f-account"></div>
+      <div class="fgroup"><label class="flabel">Stato</label>
+        <select class="finput" id="f-stato">
+          <option value="nonconfermato">Non confermato</option><option value="preventivo">Preventivo</option>
+          <option value="produzione">Produzione</option><option value="consegnato">Consegnato</option>
+        </select>
+      </div>
+      <div class="fgroup"><label class="flabel">Data consegna</label><input class="finput" type="date" id="f-consegnadate"></div>
+      <div class="fgroup"><label class="flabel">Dimensioni</label><input class="finput upcase" id="f-dim"></div>
+      <div class="fgroup"><label class="flabel">Tipo</label><input class="finput upcase" id="f-tipo"></div>
+      <div class="fgroup"><label class="flabel">Costruzione</label><input class="finput upcase" id="f-costruzione"></div>
+      <div class="fgroup"><label class="flabel">Illuminazione</label><input class="finput upcase" id="f-illuminazione"></div>
+      <div class="fgroup"><label class="flabel">Fissaggio</label><input class="finput upcase" id="f-fissaggio"></div>
+      <div class="fgroup"><label class="flabel">Colori</label><input class="finput upcase" id="f-colori"></div>
+      <div class="fgroup"><label class="flabel">Peso</label><input class="finput upcase" id="f-peso" placeholder="es. 12 kg"></div>
+      <div class="fgroup"><label class="flabel">Consumo</label><input class="finput upcase" id="f-consumo" placeholder="es. 45W"></div>
+      <div class="fgroup"><label class="flabel">Fornitore</label><input class="finput upcase" id="f-fornitore"></div>
+      <div class="fgroup"><label class="flabel">Prezzo €</label><input class="finput" type="number" id="f-prezzo"></div>
+      <div class="fgroup full"><label class="flabel">Link cartella Drive</label><input class="finput" id="f-cartella"></div>
+      <div class="fgroup full"><label class="flabel">Percorso cartella NAS</label><input class="finput" id="f-cartellanas" placeholder="smb://nas.form/Archivio_Lavori/..."></div>
+      <div class="fgroup full"><label class="flabel">Note tecniche</label><textarea class="finput upcase" id="f-note"></textarea></div>
+      <div class="fgroup full"><label class="flabel">Note interne</label><textarea class="finput upcase" id="f-noteint"></textarea></div>
+      <div class="form-warn" id="form-warn"></div>
+    </div>
+    <div class="form-actions">
+      <button class="d-btn" onclick="closeModal('project-modal')">Annulla</button>
+      <button class="d-btn primary" onclick="saveProjectForm()">Salva progetto</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="mail-modal">
+  <div class="modal">
+    <div class="modal-title"><span>Genera mail preventivo</span><button class="modal-close" onclick="closeModal('mail-modal')">✕</button></div>
+    <div style="display:flex;gap:10px;margin-bottom:10px">
+      <input class="finput upcase" id="mail-dest" placeholder="Destinatario (fornitore)">
+      <input class="finput" id="mail-email" placeholder="email@fornitore.it" type="email">
+    </div>
+    <div style="font-family:var(--mono);font-size:10.5px;color:var(--muted);margin-bottom:6px" id="mail-subject"></div>
+    <textarea class="finput mail-preview" id="mail-body" style="width:100%"></textarea>
+    <div class="form-actions">
+      <button class="d-btn" onclick="closeModal('mail-modal')">Chiudi</button>
+      <button class="d-btn primary" onclick="copyMail()">Copia tutto</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
-const SHEET_ID = '1Ol-iDcrcZyaFhi2fAWoniUkQuK_DJ0g7T4pD5-JaMjo';
-const SHEET_NAME = 'Progetti';
-const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
+/* ============================================================
+   GESTIONE INSEGNE — configurazione
+   Progetto Google Cloud: gestione-insegne
+   ============================================================ */
+// Versione del codice: cambia ad ogni aggiornamento pubblicato. Serve a rilevare schede del browser
+// rimaste aperte con una versione superata del sito (vedi checkVersionFresh più sotto) — una scheda
+// "vecchia" potrebbe salvare con logiche/formati incompatibili e corrompere i dati senza che nessuno se ne accorga.
+const APP_VERSION = '2026090201';
+
+/* ============================================================
+   PASSWORD D'ACCESSO AL SITO (lato client)
+   ATTENZIONE: questa è una protezione "leggera", non una vera sicurezza — è pensata solo
+   per tenere fuori i curiosi occasionali. Chiunque apra il codice sorgente della pagina
+   può vedere l'hash qui sotto e provare a forzarlo offline. Non usarla per dati davvero
+   sensibili. Per una protezione robusta serve un gate lato server (es. .htaccess con
+   percorso assoluto corretto per l'hosting), non ancora attivo su questo hosting perché
+   il tentativo con percorso relativo ha dato errore 500 (1 settembre 2026).
+   ============================================================ */
+const SITE_PW_HASH = '7deddc17512785481fbbd31de0488e02166aa381e15d61ee32685f5d1eb35107';
+const SITE_PW_KEY = 'insegne_pw_ok';
+async function sha256Hex(text){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+async function checkSitePassword(){
+  const input = document.getElementById('pw-input');
+  const hash = await sha256Hex(input.value);
+  if(hash === SITE_PW_HASH){
+    try{ localStorage.setItem(SITE_PW_KEY, '1'); }catch(e){}
+    document.getElementById('pw-gate').classList.add('hidden');
+  } else {
+    document.getElementById('pw-err').textContent = 'Password errata';
+    input.value = '';
+    input.focus();
+  }
+}
+(function initPwGate(){
+  function setup(){
+    let unlocked = false;
+    try{ unlocked = localStorage.getItem(SITE_PW_KEY) === '1'; }catch(e){}
+    if(unlocked) document.getElementById('pw-gate').classList.add('hidden');
+    document.getElementById('pw-input').addEventListener('keydown', function(e){
+      if(e.key === 'Enter') checkSitePassword();
+    });
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setup);
+  else setup();
+})();
+const SPREADSHEET_ID = '1Ol-iDcrcZyaFhi2fAWoniUkQuK_DJ0g7T4pD5-JaMjo';
+const API_KEY = 'AIzaSyBE81sreaz7vVYUPv3Bnh0wbp0SuXEhZPM';
+const CLIENT_ID = '823727964147-0vcbs1n78encd9nie0etmqpi77il4f92.apps.googleusercontent.com';
+const SCOPES = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file';
+
+const SHEETS_BASE = 'https://sheets.googleapis.com/v4/spreadsheets/' + SPREADSHEET_ID;
+const PROGETTI_COLS = ['ID','Cliente','Fiera','Account','Anno','Stato','Consegna','DataConsegna','Prezzo','Fornitore',
+  'Dimensioni','Tipo','Costruzione','Illuminazione','Fissaggio','Colori','Note','NoteInterne','Cartella','Avanzamento',
+  'Magazzino','FotoURL','RenderURL','CartellaNAS','Peso','Consumo'];
+
+const DEFAULT_CHECKLIST = [
+  "Ricevo richiesta dall'account","Calcola misura cavo da chiedere al fornitore per installazione",
+  "Verifica tonalità luce necessaria","Verifica sistema di fissaggio","Verifica colori","Verifica tempi di produzione",
+  "Realizzare il progetto grafico (per preventivo fornitore e approvazione account)",
+  "Chiedi offerta al fornitore/i per comparare prezzi (sempre IP67)",
+  "Invia offerta all'account specificando tempistiche di approvazione",
+  "Se confermato: manda ordine al fornitore con data consegna (CC: account + amministrazione)",
+  "Manda giorno di ritiro a Giada e tienila informata per cambi data o accorpamenti",
+  "Informa grafica2@formgroup.it con dimensione e dettaglio insegna per prospetto grafico",
+  "Informa ufficio grafico se serve contromascherina o completamento logo",
+  "Inserisci disegno insegna in cartella stand: 02-grafiche e 04-grafica"
+];
+const DEFAULT_MAIL_TEMPLATE = `Ciao,
+avrei bisogno di un preventivo per il progetto {{cliente}}{{fiera}}.
+
+{{tipo}}:
+* Dimensioni: {{dimensioni}}
+* {{costruzione}}
+* Illuminazione LED {{illuminazione}}
+* Sistema di fissaggio: {{fissaggio}}
+* Colori: {{colori}}
+
+Note:
+{{note}}
+
+Consegna prevista: {{consegna}}
+
+Rimango in attesa di un vostro riscontro.`;
 
 const STATI = {
-  nonconfermato:{label:'Non confermato',cls:'b-gray'},
-  preventivo:{label:'Preventivo',cls:'b-blue'},
-  produzione:{label:'Produzione',cls:'b-orange'},
-  consegnato:{label:'Consegnato',cls:'b-green'}
+  nonconfermato:{label:'Non confermato',cls:'b-gray',color:'#8a8680'},
+  preventivo:{label:'Preventivo',cls:'b-blue',color:'#2a6cb0'},
+  produzione:{label:'Produzione',cls:'b-orange',color:'#c67c2a'},
+  consegnato:{label:'Consegnato',cls:'b-green',color:'#2d8c5a'}
 };
+const ANNI = [2025,2026,2027];
+const TABS = [
+  {id:'lista',label:'Lista'},{id:'kanban',label:'Kanban'},{id:'account',label:'Account'},
+  {id:'magazzino',label:'Magazzino',count:true},{id:'note',label:'Note'},
+  {id:'procedura',label:'Procedura'},{id:'mailtpl',label:'Mail'}
+];
 
-let projects=[], curFilter='tutti', curYear='tutti';
+/* ---------------- Stato applicazione ---------------- */
+let projects = [];
+let checklistTpl = DEFAULT_CHECKLIST.slice();
+let mailTemplate = DEFAULT_MAIL_TEMPLATE;
+let stickyNotes = [];
+let existingSheetTitles = [];
+let accessToken = null;
+let isAdmin = false;
+let tokenClient = null;
+let loginRetried = false;
+let lastSaveOk = true;
+let tokenRefreshResolve = null;
+let tokenRefreshTimer = null;
+let selIdx = null, curFilter = 'tutti', curYear = 'tutti', editId = null, mailPid = null, mailFileMeta = null;
+let sortField = null, sortDir = 1;
 
-window.addEventListener('load', loadData);
+/* ---------------- Utility date ---------------- */
+const TODAY = new Date();
+function daysDiff(dateStr){ if(!dateStr) return null; const d = new Date(dateStr); if(isNaN(d)) return null; return Math.round((d - TODAY)/86400000); }
+function formatDateIT(val){
+  if(!val) return '';
+  const p = val.split('-'); if(p.length!==3) return val;
+  const mesi=['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+  return parseInt(p[2])+' '+mesi[parseInt(p[1])-1]+' '+p[0];
+}
+function todayDMY(){ const d=new Date(); return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear(); }
 
-function setSyncing(s,msg){
-  document.getElementById('sync-dot').className='sync-dot'+(s!=='ok'?' '+s:'');
-  document.getElementById('sync-lbl').textContent=msg||'Sync';
+/* ============================================================
+   AUTENTICAZIONE (Google Identity Services)
+   ============================================================ */
+window.addEventListener('load', function(){
+  initAuth();
+  renderNav();
+  loadAll();
+  checkVersionFresh();
+  setInterval(checkVersionFresh, 3*60*1000); // ricontrolla ogni 3 minuti: una scheda tenuta aperta a lungo
+                                              // potrebbe rimanere su una versione superata del codice.
+});
+
+/* ============================================================
+   CONTROLLO VERSIONE — protegge dal caso in cui una scheda resti aperta con una
+   versione superata del sito: se qualcuno salvasse da lì, potrebbe scrivere dati
+   con logiche/formati incompatibili e corrompere quelli reali senza accorgersene
+   (è già successo una volta con la Timeline). Se la scheda risulta superata,
+   i salvataggi vengono bloccati (vedi writeRange) finché non si ricarica la pagina.
+   ============================================================ */
+let versionStale = false;
+async function checkVersionFresh(){
+  try{
+    const res = await fetch(location.pathname + '?_v=' + Date.now(), {cache:'no-store'});
+    if(!res.ok) return; // errore di rete: non cambiamo lo stato, meglio non bloccare salvataggi per un problema temporaneo
+    const html = await res.text();
+    const m = html.match(/APP_VERSION\s*=\s*'([^']+)'/);
+    if(!m) return;
+    versionStale = (m[1] !== APP_VERSION);
+    showVersionBanner(versionStale);
+  }catch(e){ /* rete non disponibile: non cambiamo lo stato */ }
+}
+function showVersionBanner(show){
+  let el = document.getElementById('version-stale-banner');
+  if(show && !el){
+    el = document.createElement('div');
+    el.id = 'version-stale-banner';
+    el.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#b91c1c;color:#fff;text-align:center;padding:10px;font-size:13px;font-weight:600;';
+    el.innerHTML = '⚠️ Questa scheda ha una versione superata del sito — i salvataggi sono bloccati per non rischiare di sovrascrivere dati. <button onclick="location.reload()" style="margin-left:10px;padding:4px 12px;border:none;border-radius:4px;background:#fff;color:#b91c1c;font-weight:700;cursor:pointer">Ricarica pagina</button>';
+    document.body.prepend(el);
+  } else if(!show && el){
+    el.remove();
+  }
+}
+window.addEventListener('beforeunload', function(e){
+  // Avvisa prima di chiudere/ricaricare se l'ultimo salvataggio è fallito o è in corso,
+  // per evitare di perdere modifiche non ancora arrivate al foglio.
+  if(isAdmin && (!lastSaveOk || savingProjects)){
+    e.preventDefault();
+    e.returnValue = '';
+  }
+});
+
+function initAuth(){
+  function trySetup(){
+    if(typeof google === 'undefined' || !google.accounts){ setTimeout(trySetup, 300); return; }
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: CLIENT_ID,
+      scope: SCOPES,
+      callback: function(resp){
+        if(resp.error){
+          if(tokenRefreshResolve){ const r=tokenRefreshResolve; tokenRefreshResolve=null; r(false); return; }
+          showToast('Accesso non riuscito: '+resp.error, 'error');
+          return;
+        }
+        accessToken = resp.access_token;
+        isAdmin = true;
+        scheduleTokenRefresh(resp.expires_in);
+        applyAdminVisibility();
+        if(tokenRefreshResolve){
+          // rinnovo silenzioso in background (proattivo o dopo un 401): nessun toast, si aggiorna e basta
+          const r = tokenRefreshResolve; tokenRefreshResolve = null; r(true);
+        } else {
+          showToast('Accesso admin effettuato');
+          ensureSchema().then(loadAll);
+        }
+      },
+      error_callback: function(err){
+        console.error('Errore login Google:', err);
+        const tipo = err && err.type ? err.type : 'sconosciuto';
+        if(tokenRefreshResolve){ const r=tokenRefreshResolve; tokenRefreshResolve=null; r(false); return; }
+        if(tipo === 'popup_failed_to_open'){
+          showToast('Il browser ha bloccato il popup di accesso Google. Consenti i popup per questo sito (icona nella barra indirizzi) e riprova.', 'error');
+        } else if(tipo === 'popup_closed'){
+          showToast('Finestra di accesso chiusa prima del completamento.', 'error');
+        } else if(!loginRetried){
+          // il tentativo "silenzioso" (senza schermata di consenso) può fallire se non è mai
+          // stato dato il consenso in questo browser: riprovo una volta mostrando il consenso esplicito.
+          loginRetried = true;
+          tokenClient.requestAccessToken({prompt:'consent'});
+        } else {
+          showToast('Accesso non riuscito ('+tipo+')', 'error');
+        }
+      }
+    });
+    document.getElementById('login-btn').addEventListener('click', function(){
+      if(isAdmin){
+        if(!lastSaveOk && !confirm('L\'ultimo salvataggio non è riuscito: uscendo ora perderesti le modifiche non salvate. Uscire comunque?')) return;
+        isAdmin = false; accessToken = null; clearTimeout(tokenRefreshTimer); applyAdminVisibility(); showToast('Disconnesso'); loadAll();
+      } else {
+        loginRetried = false;
+        // Prova prima un accesso "silenzioso": se hai già dato il consenso in questo browser
+        // (anche in una sessione precedente), Google salta la schermata di scelta account/consenso.
+        tokenClient.requestAccessToken({prompt: ''});
+      }
+    });
+  }
+  trySetup();
+}
+function scheduleTokenRefresh(expiresIn){
+  clearTimeout(tokenRefreshTimer);
+  if(!expiresIn) return;
+  // rinnova 5 minuti prima della scadenza (i token Google durano ~1 ora), così una sessione di lavoro
+  // lunga non incontra mai un 401 mentre stai modificando qualcosa
+  const ms = Math.max((Number(expiresIn) - 300) * 1000, 30000);
+  tokenRefreshTimer = setTimeout(()=>{ if(isAdmin) ensureFreshToken(false); }, ms);
+}
+function ensureFreshToken(){
+  if(!tokenClient) return Promise.resolve(false);
+  if(tokenRefreshResolve){
+    // un rinnovo è già in corso: aspetta semplicemente che finisca
+    return new Promise(res=>{ const prev=tokenRefreshResolve; tokenRefreshResolve=(ok)=>{ prev(ok); res(ok); }; });
+  }
+  return new Promise(resolve=>{
+    tokenRefreshResolve = resolve;
+    tokenClient.requestAccessToken({prompt:''});
+  });
 }
 
-async function loadData(){
-  setSyncing('syncing','...');
-  try {
-    const res = await fetch(URL+'&'+Date.now());
-    const text = await res.text();
-    const json = JSON.parse(text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/)[1]);
-    const cols = json.table.cols.map(c => c.label);
-    projects = json.table.rows
-      .filter(r => r && r.c && r.c[0] && r.c[0].v)
-      .map(r => {
-        const get = (label) => {
-          const i = cols.indexOf(label);
-          if (i < 0) return '';
-          const cell = r.c[i];
-          if (!cell || cell.v === null || cell.v === undefined) return '';
-          return cell.f || String(cell.v);
-        };
-        return {
-          cliente: get('Cliente'),
-          fiera: get('Fiera'),
-          account: get('Account'),
-          anno: get('Anno'),
-          stato: get('Stato'),
-          consegna: get('Consegna') || get('DataConsegna'),
-          fornitore: get('Fornitore'),
-        };
-      });
-    setSyncing('ok','Sync');
-    showToast('✓ '+projects.length+' progetti');
-    renderAll();
-  } catch(e) {
-    setSyncing('error','Errore');
-    document.getElementById('cards').innerHTML='<div class="empty">Errore caricamento dati</div>';
+function applyAdminVisibility(){
+  document.querySelectorAll('.admin-only').forEach(el=>el.style.display = isAdmin ? '' : 'none');
+  document.getElementById('viewer-badge').style.display = isAdmin ? 'none' : 'inline-block';
+  document.getElementById('login-btn').textContent = isAdmin ? 'Esci' : 'Accedi con Google';
+  document.getElementById('login-btn').classList.toggle('admin', isAdmin);
+}
+
+/* ============================================================
+   LETTURA / SCRITTURA GOOGLE SHEETS
+   ============================================================ */
+function sheetsUrl(path, extraParams){
+  const params = new URLSearchParams(extraParams || {});
+  if(accessToken){ /* con token OAuth non serve la key, ma non da fastidio lasciarla */ }
+  params.set('key', API_KEY);
+  return SHEETS_BASE + path + '?' + params.toString();
+}
+function authHeaders(){
+  return accessToken ? { 'Authorization': 'Bearer ' + accessToken } : {};
+}
+async function refetchOn401(res, retryFn){
+  // Se il token è scaduto (dura ~1 ora), prova a rinnovarlo in silenzio e ripete la chiamata una volta
+  // sola, invece di far fallire subito l'operazione con un errore che sembra un bug.
+  if(res.status === 401 && isAdmin){
+    const ok = await ensureFreshToken();
+    if(ok) return await retryFn();
+  }
+  return res;
+}
+async function readRange(range){
+  const url = sheetsUrl('/values/' + encodeURIComponent(range));
+  let res = await fetch(url, { headers: authHeaders() });
+  res = await refetchOn401(res, ()=>fetch(url, { headers: authHeaders() }));
+  if(!res.ok) throw {status: res.status, body: await res.text().catch(()=> '')};
+  const data = await res.json();
+  return data.values || [];
+}
+async function writeRange(range, values){
+  if(!accessToken) throw new Error('Serve login admin per scrivere');
+  if(versionStale) throw new Error('Versione del sito superata: ricarica la pagina (Cmd/Ctrl+Shift+R) prima di salvare, per non rischiare di sovrascrivere dati con un formato non aggiornato.');
+  const url = sheetsUrl('/values/' + encodeURIComponent(range), {valueInputOption:'RAW'});
+  const doFetch = () => fetch(url, {
+    method: 'PUT',
+    headers: Object.assign({'Content-Type':'application/json'}, authHeaders()),
+    body: JSON.stringify({range, majorDimension:'ROWS', values})
+  });
+  let res = await doFetch();
+  res = await refetchOn401(res, doFetch);
+  if(!res.ok) throw {status: res.status, body: await res.text().catch(()=> '')};
+  return res.json();
+}
+async function clearRange(range){
+  if(!accessToken) throw new Error('Serve login admin per scrivere');
+  if(versionStale) throw new Error('Versione del sito superata: ricarica la pagina (Cmd/Ctrl+Shift+R) prima di salvare, per non rischiare di sovrascrivere dati con un formato non aggiornato.');
+  const url = sheetsUrl('/values/' + encodeURIComponent(range) + ':clear');
+  const doFetch = () => fetch(url, { method:'POST', headers: authHeaders() });
+  let res = await doFetch();
+  res = await refetchOn401(res, doFetch);
+  if(!res.ok) throw {status: res.status, body: await res.text().catch(()=> '')};
+  return res.json();
+}
+async function getSpreadsheetMeta(){
+  const url = sheetsUrl('', {fields:'sheets.properties.title'});
+  const res = await fetch(url, { headers: authHeaders() });
+  if(!res.ok) throw {status: res.status, body: await res.text().catch(()=> '')};
+  const data = await res.json();
+  return (data.sheets||[]).map(s=>s.properties.title);
+}
+async function addSheetTab(title){
+  const url = SHEETS_BASE + ':batchUpdate?key=' + API_KEY;
+  const res = await fetch(url, {
+    method:'POST',
+    headers: Object.assign({'Content-Type':'application/json'}, authHeaders()),
+    body: JSON.stringify({requests:[{addSheet:{properties:{title}}}]})
+  });
+  if(!res.ok) throw {status: res.status, body: await res.text().catch(()=> '')};
+}
+
+/* Crea automaticamente le schede/colonne mancanti (solo se admin loggato) */
+async function ensureSchema(){
+  if(!isAdmin) return;
+  try{
+    existingSheetTitles = await getSpreadsheetMeta();
+    if(!existingSheetTitles.includes('Procedura')){
+      await addSheetTab('Procedura');
+      await writeRange('Procedura!A1:A'+DEFAULT_CHECKLIST.length, DEFAULT_CHECKLIST.map(t=>[t]));
+      existingSheetTitles.push('Procedura');
+    }
+    if(!existingSheetTitles.includes('MailTemplate')){
+      await addSheetTab('MailTemplate');
+      await writeRange('MailTemplate!A1', [[DEFAULT_MAIL_TEMPLATE]]);
+      existingSheetTitles.push('MailTemplate');
+    }
+    if(!existingSheetTitles.includes('Insegne DB')){
+      await addSheetTab('Insegne DB');
+      await writeRange("'Insegne DB'!A1:D1", [['ID','Checklist','Timeline','Allegati']]);
+      existingSheetTitles.push('Insegne DB');
+    }
+    if(!existingSheetTitles.includes('Note')){
+      await addSheetTab('Note');
+      await writeRange('Note!A1:C1', [['ID','Testo','Aggiornato']]);
+      existingSheetTitles.push('Note');
+    }
+    // Controlla intestazioni colonne extra su Progetti (Magazzino, FotoURL, RenderURL, CartellaNAS, Peso, Consumo)
+    const header = await readRange('Progetti!A1:Z1');
+    const row = header[0] || [];
+    if(!row[20]){
+      await writeRange('Progetti!U1:X1', [['Magazzino','FotoURL','RenderURL','CartellaNAS']]);
+    }
+    if(!row[24]){
+      await writeRange('Progetti!Y1:Z1', [['Peso','Consumo']]);
+    }
+  } catch(e){
+    console.warn('ensureSchema:', e);
   }
 }
 
-function fp(){
-  return projects.filter(p=>
-    (curYear==='tutti'||String(p.anno)===curYear) &&
-    (curFilter==='tutti'||p.stato===curFilter)
-  );
+/* ============================================================
+   CARICAMENTO DATI
+   ============================================================ */
+async function loadAll(){
+  setSyncing('syncing','Caricamento...');
+  try{
+    const [progettiRows, insegneDbRows, noteRows, progettiHeader] = await Promise.all([
+      readRange('Progetti!A2:Z1000').catch(()=>[]),
+      readRange("'Insegne DB'!A1:D5000").catch(()=>[]),
+      readRange('Note!A1:C500').catch(()=>[]),
+      readRange('Progetti!A1:Z1').catch(()=>[])
+    ]);
+    let extra = {};
+    if(insegneDbRows.length){
+      const first = insegneDbRows[0];
+      // Il formato legacy (un unico blob JSON in A1) esisteva solo quando l'intero foglio era UNA riga sola.
+      // Se ci sono più righe, il formato a righe è già in uso: anche se A1 dovesse contenere per errore
+      // un vecchio blob (es. scritto da una scheda del browser con una versione superata del sito ancora
+      // aperta), NON bisogna lasciare che quel blob nasconda i dati reali sottostanti.
+      if(insegneDbRows.length<=1 && first && first[0] && String(first[0]).trim().startsWith('{')){
+        // formato legacy: un unico blob JSON in una cella (prima delle correzioni al limite di 50.000 caratteri)
+        try{ extra = JSON.parse(first[0]); }catch(e){}
+      } else {
+        // formato attuale: una riga per progetto, ID | Checklist | Timeline | Allegati
+        insegneDbRows.forEach(row=>{
+          const id = row[0];
+          if(!id || id==='ID') return;
+          let checklist=[], timeline=[], allegati=[];
+          try{ checklist = row[1] ? JSON.parse(row[1]) : []; }catch(e){}
+          try{ timeline = row[2] ? JSON.parse(row[2]) : []; }catch(e){}
+          try{ allegati = row[3] ? JSON.parse(row[3]) : []; }catch(e){}
+          extra[String(id)] = {checklist, timeline, allegati};
+        });
+      }
+    }
+
+    projects = progettiRows.filter(r=>r[0]||r[1]).map((r,idx)=>{
+      const id = r[0] ? Number(r[0]) : (idx+1);
+      const ex = extra[String(id)] || {};
+      return {
+        id, cliente:r[1]||'', fiera:r[2]||'', account:r[3]||'', anno:Number(r[4])||new Date().getFullYear(),
+        stato:r[5]||'preventivo', consegna:r[6]||'', consegnaDate:r[7]||'', prezzo:r[8]?Number(r[8]):null,
+        fornitore:r[9]||'', dimensioni:r[10]||'',
+        specs:{Tipo:r[11]||'',Costruzione:r[12]||'',Illuminazione:r[13]||'',Fissaggio:r[14]||'',Colori:r[15]||'',Peso:r[24]||'',Consumo:r[25]||''},
+        note:r[16]||'', noteInt:r[17]||'', cartella:r[18]||'', avanzamento:Number(r[19])||0,
+        magazzino: String(r[20]||'').toUpperCase()==='TRUE',
+        fotoUrl:r[21]||'', renderUrl:r[22]||'', cartellaNas:r[23]||'',
+        checklist: ex.checklist || checklistTpl.map(t=>({done:false,text:t})),
+        timeline: ex.timeline || [{date:todayDMY(),text:'Progetto creato',s:'done'}],
+        allegati: ex.allegati || []
+      };
+    });
+
+    // Procedura e template mail: solo se le schede esistono già (altrimenti default)
+    try{
+      const proc = await readRange('Procedura!A1:A100');
+      if(proc.length) checklistTpl = proc.map(r=>r[0]).filter(Boolean);
+    }catch(e){ /* scheda non ancora creata: resta il default */ }
+    try{
+      const tpl = await readRange('MailTemplate!A1');
+      if(tpl[0] && tpl[0][0]) mailTemplate = tpl[0][0];
+    }catch(e){ /* scheda non ancora creata: resta il default */ }
+    document.getElementById('mail-template').value = mailTemplate;
+
+    stickyNotes = [];
+    if(noteRows.length){
+      if(noteRows[0][0] === 'ID'){
+        // formato a schede: ID | Testo | Aggiornato
+        stickyNotes = noteRows.slice(1).filter(r=>r[0]).map(r=>({id:Number(r[0]), text:r[1]||'', updated:r[2]||''}));
+      } else if((noteRows[0][0]||'').trim()){
+        // formato legacy: una nota libera unica in A1 -> migrata alla prima scheda
+        stickyNotes = [{id:1, text:noteRows[0][0], updated: todayDMY()}];
+      }
+    }
+
+    setSyncing('ok', 'Sincronizzato');
+    // Controlla che le intestazioni delle colonne su "Progetti" non siano state spostate/rinominate a mano
+    // nel foglio: la lettura dei dati si basa sulla posizione della colonna, non sul nome, quindi una
+    // colonna spostata farebbe finire i dati nel campo sbagliato senza nessun errore evidente.
+    const headerRow = progettiHeader[0] || [];
+    const headerMismatch = PROGETTI_COLS.some((col,idx)=> headerRow[idx] && headerRow[idx] !== col);
+    if(headerMismatch){
+      showLoadError('Le intestazioni delle colonne sul foglio "Progetti" non corrispondono a quelle previste (qualcuno potrebbe averle spostate o rinominate a mano). Finché non vengono ripristinate nell\'ordine originale, alcuni dati potrebbero comparire nel campo sbagliato.');
+    } else {
+      hideLoadError();
+    }
+    renderAll();
+  } catch(e){
+    console.error(e);
+    setSyncing('error','Errore');
+    const dettaglio = e && e.status ? ('HTTP '+e.status+(e.body?': '+String(e.body).slice(0,200):'')) : (e && e.message ? e.message : 'sconosciuto');
+    showLoadError('Impossibile caricare i progetti dal Google Sheet (' + dettaglio + '). Se il problema persiste solo per alcune persone, controlla che il computer sia connesso alla rete/VPN aziendale, oppure segnala questo messaggio esatto per la diagnosi.');
+  }
+}
+function showLoadError(msg){
+  const el = document.getElementById('load-error'); if(!el) return;
+  el.textContent = msg;
+  el.classList.add('show');
+}
+function hideLoadError(){
+  const el = document.getElementById('load-error'); if(!el) return;
+  el.classList.remove('show');
 }
 
-function renderAll(){updateStats();buildYearBar();renderCards();}
-
-function updateStats(){
-  document.getElementById('s-tot').textContent=projects.length;
-  document.getElementById('s-prod').textContent=projects.filter(p=>p.stato==='produzione').length;
-  document.getElementById('s-prev').textContent=projects.filter(p=>p.stato==='preventivo').length;
+function setSyncing(state, label){
+  document.getElementById('sync-dot').className = 'sync-dot' + (state!=='ok' ? ' '+state : '');
+  document.getElementById('sync-lbl').textContent = label;
 }
 
-function buildYearBar(){
-  const years=[...new Set(projects.map(p=>String(p.anno)))].filter(Boolean).sort();
-  const mk=(y,lbl)=>`<button class="ybtn${curYear===y?' active':''}" onclick="setYear('${y}',this)">${lbl}</button>`;
-  document.getElementById('year-bar').innerHTML=mk('tutti','Tutti')+years.map(y=>mk(y,y)).join('');
+/* ============================================================
+   SALVATAGGIO
+   ============================================================ */
+function projectsToRows(){
+  return projects.map(p=>[
+    p.id, p.cliente, p.fiera, p.account, p.anno, p.stato, p.consegna, p.consegnaDate, p.prezzo||'', p.fornitore,
+    p.dimensioni, p.specs.Tipo, p.specs.Costruzione, p.specs.Illuminazione, p.specs.Fissaggio, p.specs.Colori,
+    p.note, p.noteInt, p.cartella, p.avanzamento||0,
+    p.magazzino ? 'TRUE' : 'FALSE', p.fotoUrl||'', p.renderUrl||'', p.cartellaNas||'',
+    p.specs.Peso||'', p.specs.Consumo||''
+  ]);
+}
+let savingProjects = false, pendingResave = false;
+async function persistProjects(){
+  if(savingProjects){ pendingResave = true; return; }
+  savingProjects = true;
+  setSyncing('syncing','Salvataggio...');
+  try{
+    // Scrive prima i dati nuovi e SOLO DOPO ripulisce le righe in eccesso rimaste dal salvataggio
+    // precedente. Così, se il salvataggio si interrompe a metà (rete che cade, pagina chiusa),
+    // i dati esistenti non vengono mai cancellati prima che i nuovi siano scritti con successo.
+    const rows = projectsToRows();
+    if(rows.length) await writeRange('Progetti!A2:Z'+(rows.length+1), rows);
+    if(rows.length < 999) await clearRange('Progetti!A'+(rows.length+2)+':Z1000');
+
+    // Formato a righe (una riga per progetto) invece di un unico blob JSON in una cella:
+    // una cella di Google Sheets ha un limite di 50.000 caratteri, e un unico blob con
+    // checklist+timeline+allegati di tutti i progetti può superarlo man mano che si aggiungono foto/PDF.
+    const dbRows = [['ID','Checklist','Timeline','Allegati']].concat(
+      projects.map(p=>[p.id, JSON.stringify(p.checklist||[]), JSON.stringify(p.timeline||[]), JSON.stringify(p.allegati||[])])
+    );
+    await writeRange("'Insegne DB'!A1:D"+dbRows.length, dbRows);
+    if(dbRows.length < 5000) await clearRange("'Insegne DB'!A"+(dbRows.length+1)+":D5000");
+
+    setSyncing('ok','Sincronizzato');
+    lastSaveOk = true;
+  }catch(e){
+    console.error(e);
+    setSyncing('error','Errore salvataggio');
+    lastSaveOk = false;
+    const dettaglio = e && e.status ? ('HTTP '+e.status+(e.body?': '+String(e.body).slice(0,150):'')) : (e && e.message ? e.message : 'sconosciuto');
+    showToast('Errore nel salvataggio ('+dettaglio+') — riprova o rifai il login', 'error');
+  } finally {
+    savingProjects = false;
+    if(pendingResave){ pendingResave = false; persistProjects(); }
+  }
+}
+async function persistNotes(){
+  try{
+    const rows = [['ID','Testo','Aggiornato']].concat(stickyNotes.map(n=>[n.id, n.text, n.updated]));
+    await writeRange('Note!A1:C'+rows.length, rows);
+    if(rows.length < 500) await clearRange('Note!A'+(rows.length+1)+':C500');
+    lastSaveOk = true;
+  }catch(e){
+    console.error(e);
+    lastSaveOk = false;
+    showToast('Errore salvataggio note — riprova o rifai il login','error');
+  }
+}
+function renderNotes(){
+  const grid = document.getElementById('keep-grid'); if(!grid) return;
+  grid.innerHTML = stickyNotes.map((n,ni)=>`
+    <div class="keep-card">
+      <textarea class="keep-text upcase" ${isAdmin?'':'readonly'} oninput="stickyNotes[${ni}].text=this.value" onblur="saveStickyNote(${ni})">${n.text}</textarea>
+      <div class="keep-foot"><span>${n.updated||''}</span>${isAdmin?`<span class="keep-del" onclick="deleteStickyNote(${ni})">✕</span>`:''}</div>
+    </div>`).join('') || '<div class="keep-empty">Nessuna nota'+(isAdmin?'. Clicca "+ Nuova nota" per aggiungerne una.':' ancora.')+'</div>';
+}
+function addStickyNote(){
+  if(!isAdmin) return;
+  const id = stickyNotes.length ? Math.max(...stickyNotes.map(n=>n.id))+1 : 1;
+  stickyNotes.push({id, text:'', updated: todayDMY()});
+  renderNotes();
+  persistNotes();
+  setTimeout(()=>{ const els = document.querySelectorAll('.keep-text'); const last = els[els.length-1]; if(last) last.focus(); }, 30);
+}
+async function saveStickyNote(ni){
+  if(!isAdmin) return;
+  const n = stickyNotes[ni]; if(!n) return;
+  n.text = (n.text||'').toUpperCase();
+  n.updated = todayDMY();
+  renderNotes();
+  await persistNotes();
+}
+async function deleteStickyNote(ni){
+  if(!confirm('Eliminare questa nota?')) return;
+  stickyNotes.splice(ni,1);
+  renderNotes();
+  await persistNotes();
+}
+async function saveProcedura(){
+  const items = Array.from(document.querySelectorAll('#proc-list .proc-text')).map(i=>i.value.trim()).filter(Boolean);
+  checklistTpl = items;
+  try{
+    if(items.length) await writeRange('Procedura!A1:A'+items.length, items.map(t=>[t]));
+    if(items.length < 200) await clearRange('Procedura!A'+(items.length+1)+':A200');
+    lastSaveOk = true;
+    showToast('Procedura salvata');
+  }catch(e){ lastSaveOk = false; showToast('Errore salvataggio procedura','error'); }
+}
+async function saveMailTemplate(){
+  mailTemplate = document.getElementById('mail-template').value;
+  try{ await writeRange('MailTemplate!A1', [[mailTemplate]]); lastSaveOk = true; showToast('Template salvato'); }
+  catch(e){ lastSaveOk = false; showToast('Errore salvataggio template','error'); }
 }
 
-function setYear(y,btn){
-  curYear=y;
-  document.querySelectorAll('.ybtn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  renderCards();
+/* ============================================================
+   UPLOAD IMMAGINI SU DRIVE
+   ============================================================ */
+async function uploadFileToDriveRaw(file){
+  if(!accessToken) throw new Error('Login admin richiesto');
+  const metadata = { name: file.name };
+  const boundary = '-------insegne' + Date.now();
+  const delimiter = "\r\n--" + boundary + "\r\n";
+  const closeDelim = "\r\n--" + boundary + "--";
+  const fileData = await file.arrayBuffer();
+  const multipartBody = new Blob([
+    delimiter, 'Content-Type: application/json\r\n\r\n', JSON.stringify(metadata),
+    delimiter, 'Content-Type: ' + (file.type||'application/octet-stream') + '\r\n\r\n', new Uint8Array(fileData),
+    closeDelim
+  ]);
+  const doUpload = () => fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,webViewLink,thumbnailLink', {
+    method:'POST',
+    headers: Object.assign({'Content-Type':'multipart/related; boundary='+boundary}, authHeaders()),
+    body: multipartBody
+  });
+  let res = await doUpload();
+  res = await refetchOn401(res, doUpload);
+  if(!res.ok) throw {status: res.status, body: await res.text().catch(()=> '')};
+  const data = await res.json();
+  // rende il file leggibile da chiunque abbia il link (serve per mostrarlo ai visualizzatori)
+  await fetch('https://www.googleapis.com/drive/v3/files/'+data.id+'/permissions', {
+    method:'POST',
+    headers: Object.assign({'Content-Type':'application/json'}, authHeaders()),
+    body: JSON.stringify({role:'reader', type:'anyone'})
+  }).catch(()=>{});
+  return data; // {id, webViewLink, thumbnailLink}
 }
-
-function setFilter(f,btn){
-  curFilter=f;
-  document.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  renderCards();
+function driveThumbUrl(id, size){
+  // L'endpoint diretto di anteprima di Drive è disponibile subito dopo l'upload,
+  // a differenza del campo thumbnailLink dell'API che a volte non è ancora pronto.
+  return 'https://drive.google.com/thumbnail?id='+id+'&sz=w'+(size||1000);
 }
-
-function renderCards(){
-  const list=fp();
-  const el=document.getElementById('cards');
-  if(!list.length){el.innerHTML='<div class="empty">Nessun progetto</div>';return;}
-  el.innerHTML=list.map(p=>{
-    const s=STATI[p.stato]||STATI.preventivo;
-    return `<div class="card">
-      <div class="card-top">
-        <div><div class="card-name">${p.cliente||'—'}</div><div class="card-fiera">${p.fiera||'—'}</div></div>
-        <span class="badge ${s.cls}">${s.label}</span>
-      </div>
-      <div class="card-info">
-        <div class="info-item"><div class="info-lbl">Account</div><div class="info-val">${p.account||'—'}</div></div>
-        <div class="info-item"><div class="info-lbl">Consegna</div><div class="info-val">${p.consegna||'—'}</div></div>
-        <div class="info-item"><div class="info-lbl">Fornitore</div><div class="info-val">${p.fornitore||'—'}</div></div>
-      </div>
-    </div>`;
+function handleAttachDragOver(ev){ if(!isAdmin) return; ev.preventDefault(); ev.currentTarget.classList.add('drag-over'); }
+function handleAttachDragLeave(ev){ ev.currentTarget.classList.remove('drag-over'); }
+async function handleAttachDrop(ev, pid){
+  ev.preventDefault();
+  ev.currentTarget.classList.remove('drag-over');
+  if(!isAdmin) return;
+  const files = Array.from((ev.dataTransfer && ev.dataTransfer.files) || []);
+  if(!files.length) return;
+  const allowed = ['image/jpeg','image/png','application/pdf'];
+  const p = projects.find(x=>x.id===pid);
+  for(const file of files){
+    if(!allowed.includes(file.type) && !/\.(jpg|jpeg|png|pdf)$/i.test(file.name)){
+      showToast('Formato non supportato per il trascinamento: '+file.name+' (usa JPG, PNG o PDF)', 'error');
+      continue;
+    }
+    showToast('Caricamento '+file.name+'...');
+    try{
+      const data = await uploadFileToDriveRaw(file);
+      if(!p.allegati) p.allegati = [];
+      p.allegati.push({name:file.name, url:data.webViewLink, id:data.id, thumb:driveThumbUrl(data.id, 700)});
+    }catch(e){
+      showToast('Errore upload '+file.name+': '+(e.status||e.message||'sconosciuto'), 'error');
+    }
+  }
+  await persistProjects();
+  openDetail(projects.indexOf(p));
+  showToast('Allegati aggiornati');
+}
+function triggerAttachmentUpload(pid){
+  if(!isAdmin) return;
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.onchange = async function(){
+    if(!input.files[0]) return;
+    const file = input.files[0];
+    showToast('Caricamento allegato su Drive...');
+    try{
+      const data = await uploadFileToDriveRaw(file);
+      const p = projects.find(x=>x.id===pid);
+      if(!p.allegati) p.allegati = [];
+      p.allegati.push({name:file.name, url:data.webViewLink, id:data.id, thumb:driveThumbUrl(data.id, 700)});
+      await persistProjects();
+      openDetail(projects.indexOf(p));
+      showToast('Allegato caricato');
+    }catch(e){
+      showToast('Errore upload: '+(e.status||e.message||'sconosciuto'), 'error');
+    }
+  };
+  input.click();
+}
+async function removeAttachment(i, ai){
+  if(!confirm('Rimuovere questo allegato dalla lista? (il file resta su Drive)')) return;
+  projects[i].allegati.splice(ai,1);
+  await persistProjects();
+  openDetail(i);
+}
+/* ============================================================
+   RENDER — NAVIGAZIONE
+   ============================================================ */
+function renderNav(){
+  document.getElementById('nav').innerHTML = TABS.map((t,i)=>{
+    const cnt = t.count ? `<span class="cnt" id="cnt-magazzino">0</span>` : '';
+    return `<button class="ntab${i===0?' active':''}" data-tab="${t.id}" onclick="switchView('${t.id}',this)">${t.label}${cnt}</button>`;
   }).join('');
 }
-
-function showToast(msg,type){
-  const t=document.getElementById('toast');
-  t.textContent=msg;
-  t.className='toast'+(type?' '+type:'');
-  t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),2500);
+function switchView(id, btn){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+id).classList.add('active');
+  document.querySelectorAll('.ntab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if(id==='magazzino') renderMagazzino();
 }
+function renderAll(){
+  updateStats(); renderYearFilters(); renderFilters(); renderTable(); renderKanban();
+  renderAccount(); renderMagazzino(); renderProc(); previewMailTpl(); renderNotes();
+  applyAdminVisibility();
+  if(selIdx !== null && projects[selIdx]) openDetail(selIdx);
+}
+
+function activeProjects(){
+  return projects.filter(p=>!p.magazzino && (curYear==='tutti' || p.anno===curYear));
+}
+function deadlineTag(p){
+  if(p.stato==='consegnato') return `<span class="deadline ok">consegnato</span>`;
+  const dd = daysDiff(p.consegnaDate);
+  if(dd===null) return `<span class="deadline ok">${p.consegna||'—'}</span>`;
+  if(dd<0) return `<span class="deadline late">in ritardo</span>`;
+  if(dd<=14) return `<span class="deadline soon">tra ${dd}g</span>`;
+  return `<span class="deadline ok">${p.consegna || formatDateIT(p.consegnaDate)}</span>`;
+}
+function updateStats(){
+  const act = activeProjects();
+  const tot=act.length, prod=act.filter(p=>p.stato==='produzione').length;
+  const late=act.filter(p=>p.stato!=='consegnato' && daysDiff(p.consegnaDate)<0).length;
+  document.getElementById('hstats').innerHTML =
+    `<div class="hstat"><div class="hstat-val">${tot}</div><div class="hstat-lbl">Totale</div></div>`+
+    `<div class="hstat"><div class="hstat-val">${prod}</div><div class="hstat-lbl">Produzione</div></div>`+
+    `<div class="hstat"><div class="hstat-val" style="color:${late?'var(--red)':'var(--accent)'}">${late}</div><div class="hstat-lbl">In ritardo</div></div>`;
+  const cntEl = document.getElementById('cnt-magazzino');
+  if(cntEl) cntEl.textContent = projects.filter(p=>p.magazzino).length;
+}
+function renderYearFilters(){
+  const opts = [['tutti','Tutti gli anni'], ...ANNI.map(a=>[a,String(a)])];
+  document.getElementById('year-bar').innerHTML = opts.map(([id,lbl])=>
+    `<button class="ybtn${curYear===id?' active':''}" onclick="setYear('${id}')">${lbl}</button>`).join('');
+}
+function setYear(y){ curYear = y==='tutti' ? 'tutti' : Number(y); renderYearFilters(); updateStats(); renderTable(); renderKanban(); renderAccount(); }
+function renderFilters(){
+  const opts=[['tutti','Tutti'],['nonconfermato','Non confermato'],['preventivo','Preventivo'],['produzione','Produzione'],['consegnato','Consegnato']];
+  document.getElementById('filters').innerHTML = opts.map(([id,lbl])=>
+    `<button class="fbtn${curFilter===id?' active':''}" onclick="setFilter('${id}')">${lbl}</button>`).join('');
+}
+function setFilter(f){ curFilter=f; renderFilters(); renderTable(); }
+
+function filteredList(){
+  const q=(document.getElementById('search').value||'').toLowerCase();
+  return activeProjects().filter(p=>(curFilter==='tutti'||p.stato===curFilter))
+    .filter(p=>!q || p.cliente.toLowerCase().includes(q) || p.fiera.toLowerCase().includes(q) || p.fornitore.toLowerCase().includes(q));
+}
+function setSort(field){
+  if(sortField === field){ sortDir = -sortDir; } else { sortField = field; sortDir = 1; }
+  renderTable();
+}
+function sortValue(p, field){
+  switch(field){
+    case 'account': return (p.account||'').toLowerCase();
+    case 'stato': return (STATI[p.stato]?.label || p.stato || '').toLowerCase();
+    case 'consegna': return p.consegnaDate || '';
+    case 'fornitore': return (p.fornitore||'').toLowerCase();
+    case 'prezzo': return Number(p.prezzo)||0;
+    case 'avanzamento': return Number(p.avanzamento)||0;
+    default: return 0;
+  }
+}
+function renderTable(){
+  let list = filteredList();
+  if(sortField){
+    list = list.slice().sort((a,b)=>{
+      const av = sortValue(a, sortField), bv = sortValue(b, sortField);
+      if(av<bv) return -1*sortDir;
+      if(av>bv) return 1*sortDir;
+      return 0;
+    });
+  }
+  document.getElementById('table-body').innerHTML = list.map(p=>{
+    const s = STATI[p.stato] || STATI.preventivo; const i = projects.indexOf(p);
+    return `<tr class="prow${selIdx===i?' sel':''}" onclick="openDetail(${i})">
+      <td><div class="cname">${p.cliente}</div><div class="ftag">${p.fiera||'—'}</div></td>
+      <td style="color:var(--muted2)">${p.account||'—'}</td>
+      <td><span class="badge ${s.cls}">${s.label}</span></td>
+      <td>${deadlineTag(p)}</td>
+      <td style="color:var(--muted2)">${p.fornitore||'—'}</td>
+      <td style="font-family:var(--mono);font-size:11px">${p.prezzo?Number(p.prezzo).toLocaleString('it-IT')+'€':'—'}</td>
+      <td><div class="pw"><div class="pbar"><div class="pfill" style="width:${p.avanzamento}%"></div></div><div class="ppct">${p.avanzamento}%</div></div></td>
+    </tr>`;
+  }).join('') || `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:30px;font-family:var(--mono);font-size:11px">Nessun progetto</td></tr>`;
+  ['account','stato','consegna','fornitore','prezzo','avanzamento'].forEach(f=>{
+    const el = document.getElementById('arrow-'+f);
+    if(el) el.textContent = sortField===f ? (sortDir===1?'▲':'▼') : '';
+  });
+}
+function renderKanban(){
+  const list = activeProjects();
+  document.getElementById('kanban').innerHTML = ['nonconfermato','preventivo','produzione','consegnato'].map(stato=>{
+    const cards = list.filter(p=>p.stato===stato);
+    return `<div class="kol" style="--kcolor:${STATI[stato].color}"><div class="kol-head"><span class="kol-title">${STATI[stato].label}</span><span class="kol-count">${cards.length}</span></div>
+      <div class="kol-body">${cards.map(p=>`<div class="kcard" onclick="openDetailByTab(${projects.indexOf(p)})"><div class="kcard-name">${p.cliente}</div><div class="kcard-sub">${p.fiera||'—'} · ${p.account||'—'}</div></div>`).join('') || '<div style="text-align:center;color:var(--muted);font-family:var(--mono);font-size:10px;padding:8px">vuoto</div>'}</div></div>`;
+  }).join('');
+}
+function renderAccount(){
+  const groups = {};
+  activeProjects().forEach(p=>{ const k=(p.account||'—').toUpperCase(); if(!groups[k]) groups[k]=[]; groups[k].push(p); });
+  document.getElementById('account-grid').innerHTML = Object.keys(groups).sort().map(acc=>{
+    const projs = groups[acc];
+    return `<div class="acc-group"><div class="acc-head">${acc}<span style="color:var(--muted);font-weight:400">${projs.length} progetti</span></div>
+      ${projs.map(p=>`<div class="acc-row" onclick="openDetailByTab(${projects.indexOf(p)})"><div style="flex:1;font-weight:600">${p.cliente}</div><span class="badge ${STATI[p.stato].cls}">${STATI[p.stato].label}</span></div>`).join('')}</div>`;
+  }).join('');
+}
+function openDetailByTab(i){ document.querySelector('[data-tab="lista"]').click(); openDetail(i); }
+function renderMagazzino(){
+  const magEl = document.getElementById('mag-search'); if(!magEl) return;
+  const q = (magEl.value||'').toLowerCase();
+  const list = projects.filter(p=>p.magazzino).filter(p=>!q || p.cliente.toLowerCase().includes(q) || p.fornitore.toLowerCase().includes(q));
+  document.getElementById('mag-table-body').innerHTML = list.map(p=>{
+    const i = projects.indexOf(p);
+    return `<tr><td><div class="cname">${p.cliente}</div><div class="ftag">${p.fiera||'—'}</div></td>
+      <td style="font-family:var(--mono);font-size:11px">${p.anno}</td>
+      <td style="color:var(--muted2)">${p.fornitore||'—'}</td>
+      <td style="color:var(--muted2)">${p.dimensioni||'—'}</td>
+      <td><button class="d-btn admin-only" onclick="rimettiInLista(${i})">Rimetti in lista</button></td>
+    </tr>`;
+  }).join('') || `<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:30px;font-family:var(--mono);font-size:11px">Nessuna insegna in magazzino</td></tr>`;
+  applyAdminVisibility();
+}
+function closeDetail(){
+  selIdx = null;
+  const sp = document.querySelector('.split'); if(sp) sp.classList.remove('detail-focus');
+  document.getElementById('detail-pane').innerHTML = '<div class="detail-empty">Seleziona un progetto dalla lista<br>per vederne i dettagli</div>';
+  renderTable();
+}
+async function moveToMagazzino(i){
+  projects[i].magazzino = true; selIdx = null;
+  await persistProjects();
+  const sp = document.querySelector('.split'); if(sp) sp.classList.remove('detail-focus');
+  document.getElementById('detail-pane').innerHTML = '<div class="detail-empty">Seleziona un progetto dalla lista<br>per vederne i dettagli</div>';
+  renderAll();
+  showToast('Spostato in magazzino');
+}
+async function rimettiInLista(i){
+  projects[i].magazzino = false;
+  await persistProjects();
+  renderAll();
+  showToast('Rimesso in lista attiva');
+}
+async function moveYear(i, anno){
+  projects[i].anno = Number(anno);
+  await persistProjects();
+  updateStats(); renderTable(); renderKanban(); renderAccount();
+  showToast('Progetto spostato al '+anno);
+}
+
+/* ============================================================
+   DETTAGLIO PROGETTO
+   ============================================================ */
+function openDetail(i){
+  selIdx = i; renderTable();
+  const p = projects[i]; if(!p) return;
+  const sp = document.querySelector('.split'); if(sp) sp.classList.add('detail-focus');
+  const s = STATI[p.stato] || STATI.preventivo;
+  const dataLabel = p.consegna || formatDateIT(p.consegnaDate) || '';
+  const doneCount = p.checklist.filter(c=>c.done).length;
+  document.getElementById('detail-pane').innerHTML = `
+    <div class="detail-back" onclick="closeDetail()">&larr; Torna alla lista</div>
+    <div class="dm-title">${p.cliente}</div>
+    <div class="dm-meta"><span>${p.fiera||'—'}</span><span>·</span><span>${p.account||'—'}</span><span>·</span><span class="badge ${s.cls}">${s.label}</span>${dataLabel?`<span>·</span><span>Consegna: ${dataLabel}</span>`:''}</div>
+    <div class="dm-year admin-only">
+      <span style="font-family:var(--mono);font-size:9.5px;color:var(--muted);text-transform:uppercase">Anno</span>
+      <select onchange="moveYear(${i},this.value)">${ANNI.map(a=>`<option value="${a}" ${a===p.anno?'selected':''}>${a}</option>`).join('')}</select>
+    </div>
+    <div class="progress-mini"><div class="pm-num">${p.avanzamento}%</div><div style="flex:1"><div class="pbar"><div class="pfill" style="width:${p.avanzamento}%"></div></div><div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:3px">${doneCount} di ${p.checklist.length} step completati</div></div></div>
+    <div class="sec"><div class="sec-title">Misure</div>
+      <div class="spec"><div class="spec-v">${p.dimensioni||'—'}</div></div>
+    </div>
+    <div class="sec"><div class="sec-title">Foto, render e allegati (JPG, PNG, PDF, disegni, ecc.)</div>
+      <div class="attach-grid" ondragover="handleAttachDragOver(event)" ondragleave="handleAttachDragLeave(event)" ondrop="handleAttachDrop(event,${p.id})">
+        ${(p.allegati||[]).map((a,ai)=>`<a class="attach-tile" href="${a.url}" target="_blank">${a.thumb?`<img src="${a.thumb}">`:'<div class="attach-icon">📄</div>'}<div class="attach-name">${a.name}</div>${isAdmin?`<span class="attach-del" onclick="event.preventDefault();event.stopPropagation();removeAttachment(${i},${ai})">✕</span>`:''}</a>`).join('') || (isAdmin?'':'<div style="color:var(--muted);font-size:11.5px">Nessun file caricato</div>')}
+        <div class="attach-tile attach-drop-hint admin-only">Trascina qui<br>JPG · PNG · PDF</div>
+      </div>
+      <div class="admin-only" style="margin-top:8px"><button class="d-btn" onclick="triggerAttachmentUpload(${p.id})">+ Aggiungi file</button></div>
+    </div>
+    <div class="sec"><div class="sec-title">Specifiche tecniche</div>
+      <div class="specs-grid">${Object.entries(p.specs).filter(([,v])=>v).map(([k,v])=>`<div class="spec"><div class="spec-l">${k}</div><div class="spec-v">${v}</div></div>`).join('') || '<div class="spec-v" style="color:var(--muted)">—</div>'}</div>
+    </div>
+    <div class="sec"><div class="sec-title">Fornitore</div>
+      <div class="spec">${p.fornitore||'—'}${p.prezzo?` — <strong>${Number(p.prezzo).toLocaleString('it-IT')}€</strong>`:''}</div>
+    </div>
+    <div class="sec"><div class="sec-title">Cartelle</div>
+      ${p.cartella?`<a class="link-row" href="${p.cartella}" target="_blank">Drive: cartella progetto</a>`:''}
+      ${p.cartellaNas?`<a class="link-row" href="${p.cartellaNas}">NAS (solo rete interna): ${p.cartellaNas}</a>`:''}
+      ${(!p.cartella && !p.cartellaNas)?'<div style="color:var(--muted);font-size:11.5px">Nessun link impostato</div>':''}
+    </div>
+    <div class="sec"><div class="sec-title">Checklist</div>
+      <ul class="checklist">${p.checklist.map((c,ci)=>`<li class="ci ${c.done?'done':''}"><input type="checkbox" ${c.done?'checked':''} ${isAdmin?'':'disabled'} onclick="toggleCheck(${i},${ci})"><span>${c.text}</span></li>`).join('')}</ul>
+    </div>
+    <div class="sec"><div class="sec-title">Timeline</div>
+      <div class="timeline">${p.timeline.map((t,ti)=>`<div class="tli"><div class="tl-dot"></div><div style="flex:1"><div class="tl-d">${t.date}${isAdmin?` <span class="tl-edit" onclick="editTimeline(${i},${ti})">✎</span> <span class="tl-edit" onclick="delTimeline(${i},${ti})">✕</span>`:''}</div><div id="tl-text-${i}-${ti}">${t.text}</div></div></div>`).join('')}</div>
+      <div class="tl-add admin-only"><input id="tl-input" placeholder="Aggiungi voce timeline..."><button class="d-btn" onclick="addTimeline(${i})">Aggiungi</button></div>
+    </div>
+    ${p.note?`<div class="sec"><div class="sec-title">Note tecniche</div><div class="spec" style="white-space:pre-line">${p.note}</div></div>`:''}
+    ${p.noteInt?`<div class="sec"><div class="sec-title">Note interne</div><div class="spec" style="white-space:pre-line;color:var(--purple)">${p.noteInt}</div></div>`:''}
+    <div class="d-actions admin-only">
+      <button class="d-btn primary" onclick="openEditModal(${i})">Modifica</button>
+      <button class="d-btn mail" onclick="openMail(${i})">Mail preventivo</button>
+      <button class="d-btn stock" onclick="moveToMagazzino(${i})">Sposta a magazzino</button>
+      <button class="d-btn danger" onclick="deleteProject(${i})">Elimina</button>
+    </div>
+  `;
+  applyAdminVisibility();
+}
+async function toggleCheck(i, ci){
+  if(!isAdmin) return;
+  const p = projects[i];
+  p.checklist[ci].done = !p.checklist[ci].done;
+  p.avanzamento = Math.round(p.checklist.filter(c=>c.done).length / p.checklist.length * 100);
+  await persistProjects();
+  openDetail(i); renderTable(); renderKanban();
+}
+async function addTimeline(i){
+  const input = document.getElementById('tl-input'); if(!input || !input.value.trim()) return;
+  projects[i].timeline.push({date: todayDMY(), text: input.value.trim(), s:'done'});
+  await persistProjects();
+  openDetail(i);
+  showToast('Voce aggiunta');
+}
+function editTimeline(i, ti){
+  if(!isAdmin) return;
+  const t = projects[i].timeline[ti];
+  const el = document.getElementById('tl-text-'+i+'-'+ti);
+  if(!el) return;
+  el.innerHTML = `<textarea class="tl-edit-input" id="tl-edit-input-${i}-${ti}" rows="2">${(t.text||'').replace(/</g,'&lt;')}</textarea>
+    <div style="display:flex;gap:6px;margin-top:4px">
+      <button class="d-btn primary" style="padding:4px 10px;font-size:9.5px" onclick="saveTimelineEdit(${i},${ti})">Salva</button>
+      <button class="d-btn" style="padding:4px 10px;font-size:9.5px" onclick="openDetail(${i})">Annulla</button>
+    </div>`;
+  const ta = document.getElementById('tl-edit-input-'+i+'-'+ti);
+  ta.focus(); ta.selectionStart = ta.value.length;
+}
+async function saveTimelineEdit(i, ti){
+  const ta = document.getElementById('tl-edit-input-'+i+'-'+ti);
+  if(!ta) return;
+  const val = ta.value.trim();
+  if(!val) return;
+  projects[i].timeline[ti].text = val;
+  await persistProjects();
+  openDetail(i);
+  showToast('Voce aggiornata');
+}
+async function delTimeline(i, ti){
+  if(!confirm('Eliminare questa voce?')) return;
+  projects[i].timeline.splice(ti,1);
+  await persistProjects();
+  openDetail(i);
+}
+async function deleteProject(i){
+  if(!confirm('Eliminare definitivamente questo progetto?')) return;
+  projects.splice(i,1); selIdx=null;
+  await persistProjects();
+  const sp = document.querySelector('.split'); if(sp) sp.classList.remove('detail-focus');
+  document.getElementById('detail-pane').innerHTML = '<div class="detail-empty">Seleziona un progetto dalla lista<br>per vederne i dettagli</div>';
+  renderAll();
+  showToast('Progetto eliminato');
+}
+
+/* ============================================================
+   MODAL NUOVO / MODIFICA PROGETTO
+   ============================================================ */
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+function openNewModal(){
+  editId = null;
+  document.getElementById('modal-title').textContent = 'Nuovo progetto';
+  ['cliente','fiera','account','dim','tipo','costruzione','illuminazione','fissaggio','colori','peso','consumo','fornitore','prezzo','cartella','cartellanas','note','noteint'].forEach(f=>{
+    const el = document.getElementById('f-'+f); if(el) el.value='';
+  });
+  document.getElementById('f-stato').value = 'preventivo';
+  document.getElementById('f-anno').value = String(new Date().getFullYear());
+  document.getElementById('f-consegnadate').value = '';
+  document.getElementById('form-warn').textContent = '';
+  openModal('project-modal');
+}
+function openEditModal(i){
+  const p = projects[i]; editId = p.id;
+  document.getElementById('modal-title').textContent = 'Modifica progetto';
+  document.getElementById('f-cliente').value = p.cliente;
+  document.getElementById('f-fiera').value = p.fiera;
+  document.getElementById('f-account').value = p.account;
+  document.getElementById('f-anno').value = p.anno;
+  document.getElementById('f-stato').value = p.stato;
+  document.getElementById('f-consegnadate').value = p.consegnaDate;
+  document.getElementById('f-dim').value = p.dimensioni;
+  document.getElementById('f-tipo').value = p.specs.Tipo;
+  document.getElementById('f-costruzione').value = p.specs.Costruzione;
+  document.getElementById('f-illuminazione').value = p.specs.Illuminazione;
+  document.getElementById('f-fissaggio').value = p.specs.Fissaggio;
+  document.getElementById('f-colori').value = p.specs.Colori;
+  document.getElementById('f-peso').value = p.specs.Peso || '';
+  document.getElementById('f-consumo').value = p.specs.Consumo || '';
+  document.getElementById('f-fornitore').value = p.fornitore;
+  document.getElementById('f-prezzo').value = p.prezzo || '';
+  document.getElementById('f-cartella').value = p.cartella;
+  document.getElementById('f-cartellanas').value = p.cartellaNas;
+  document.getElementById('f-note').value = p.note;
+  document.getElementById('f-noteint').value = p.noteInt;
+  document.getElementById('form-warn').textContent = '';
+  openModal('project-modal');
+}
+function nextId(){ return projects.length===0 ? 1 : Math.max(...projects.map(p=>p.id))+1; }
+function upVal(id){ return document.getElementById(id).value.trim().toUpperCase(); }
+async function saveProjectForm(){
+  const cliente = upVal('f-cliente');
+  if(!cliente){ document.getElementById('form-warn').textContent='Cliente obbligatorio'; return; }
+  const consegnaDate = document.getElementById('f-consegnadate').value;
+  const specs = {
+    Tipo: upVal('f-tipo'), Costruzione: upVal('f-costruzione'),
+    Illuminazione: upVal('f-illuminazione'), Fissaggio: upVal('f-fissaggio'),
+    Colori: upVal('f-colori'), Peso: upVal('f-peso'), Consumo: upVal('f-consumo')
+  };
+  const common = {
+    cliente, fiera: upVal('f-fiera'), account: upVal('f-account'),
+    anno: Number(document.getElementById('f-anno').value), stato: document.getElementById('f-stato').value,
+    consegna: formatDateIT(consegnaDate), consegnaDate, dimensioni: upVal('f-dim'), specs,
+    fornitore: upVal('f-fornitore'), prezzo: document.getElementById('f-prezzo').value || null,
+    cartella: document.getElementById('f-cartella').value.trim(), cartellaNas: document.getElementById('f-cartellanas').value.trim(),
+    note: upVal('f-note'), noteInt: upVal('f-noteint')
+  };
+  if(editId){
+    const p = projects.find(x=>x.id===editId);
+    Object.assign(p, common);
+    showToast('Progetto aggiornato');
+  } else {
+    projects.push(Object.assign({
+      id: nextId(), avanzamento:0, magazzino:false, fotoUrl:'', renderUrl:'',
+      checklist: checklistTpl.map(t=>({done:false,text:t})),
+      timeline: [{date: todayDMY(), text:'Progetto creato', s:'done'}],
+      allegati: []
+    }, common));
+    showToast('Progetto aggiunto');
+  }
+  await persistProjects();
+  closeModal('project-modal');
+  renderAll();
+  if(editId) openDetail(projects.findIndex(x=>x.id===editId));
+}
+
+/* ============================================================
+   PROCEDURA (checklist template)
+   ============================================================ */
+function renderProc(){
+  document.getElementById('proc-list').innerHTML = checklistTpl.map((t,i)=>`
+    <div class="proc-item">
+      <div class="proc-num">${i+1}.</div>
+      <input class="proc-text" value="${t.replace(/"/g,'&quot;')}">
+      <button class="icon-btn danger admin-only" onclick="delProcStep(${i})">✕</button>
+    </div>`).join('');
+  applyAdminVisibility();
+}
+function addProcStep(){ checklistTpl.push('Nuovo step'); renderProc(); }
+function delProcStep(i){ checklistTpl.splice(i,1); renderProc(); }
+
+/* ============================================================
+   TEMPLATE MAIL
+   ============================================================ */
+function fillTemplate(tpl, p){
+  const fiera = p.fiera ? ' per la fiera '+p.fiera : '';
+  return tpl
+    .replace(/{{cliente}}/g, p.cliente||'')
+    .replace(/{{fiera}}/g, fiera)
+    .replace(/{{dimensioni}}/g, p.dimensioni||'—')
+    .replace(/{{tipo}}/g, (p.specs.Tipo||'DETTAGLI').toUpperCase())
+    .replace(/{{costruzione}}/g, p.specs.Costruzione||'—')
+    .replace(/{{illuminazione}}/g, (p.specs.Illuminazione||'').toLowerCase())
+    .replace(/{{fissaggio}}/g, p.specs.Fissaggio||'—')
+    .replace(/{{colori}}/g, p.specs.Colori||'—')
+    .replace(/{{note}}/g, p.note||'—')
+    .replace(/{{consegna}}/g, p.consegna || formatDateIT(p.consegnaDate) || 'da definire');
+}
+function previewMailTpl(){
+  const tpl = document.getElementById('mail-template').value;
+  const sample = {cliente:'MININI', fiera:'VEROLANUOVA', dimensioni:'6,5 × 1,55 mt',
+    specs:{Tipo:'Installazione fissa', Costruzione:'Castello compreso', Illuminazione:'Frontale luminoso', Fissaggio:'Americana', Colori:'Da allegato'},
+    note:'Insegna lunga, chiedere al fornitore di frazionarla.', consegna:'fine gennaio 2026'};
+  document.getElementById('mail-tpl-preview').textContent = fillTemplate(tpl, sample);
+}
+function openMail(i){
+  const p = projects[i]; mailPid = i;
+  document.getElementById('mail-dest').value = p.fornitore || '';
+  document.getElementById('mail-email').value = '';
+  document.getElementById('mail-subject').textContent = 'Oggetto: Richiesta preventivo insegna — '+p.cliente+(p.fiera?' / '+p.fiera:'');
+  document.getElementById('mail-body').value = fillTemplate(mailTemplate, p);
+  openModal('mail-modal');
+}
+function copyMail(){
+  const email = document.getElementById('mail-email').value;
+  const subject = document.getElementById('mail-subject').textContent;
+  const body = document.getElementById('mail-body').value;
+  const text = (email ? 'A: '+email+'\n' : '') + subject + '\n\n' + body;
+  navigator.clipboard.writeText(text).then(()=>showToast('Testo copiato')).catch(()=>showToast('Copia non riuscita','error'));
+}
+
+/* ============================================================
+   TOAST
+   ============================================================ */
+function showToast(msg, type){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast show' + (type?(' '+type):'');
+  setTimeout(()=>t.classList.remove('show'), 2500);
+}
+document.getElementById('sync-btn') && document.getElementById('sync-btn').addEventListener('click', loadAll);
+document.querySelector('.btn-new') || null;
 </script>
+<button class="btn-new admin-only" style="position:fixed;bottom:20px;right:20px;z-index:150" onclick="openNewModal()">+ Nuovo progetto</button>
 </body>
 </html>
